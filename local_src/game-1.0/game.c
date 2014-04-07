@@ -91,9 +91,24 @@ void turnEvent(int event){
   }
 }
 
+int enemyAtPos(int pos){
+  for(int i=0; i<maxEnemies; ++i){
+    if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
+      return TRUE;
+  }
+  return FALSE;
+}
+
 void printMap(){
+  int playerPos = player.position.y*MAP_HEIGHT + player.position.x;
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
-    if(i%MAP_WIDTH == 0)
+    if(i==playerPos){
+      printf("%c ", 'P');
+      continue;
+    } else if(enemyAtPos(i)){
+      printf("%c ", 'E');
+      continue;
+    } else if(i % MAP_WIDTH == 0)
       printf("\n");
     printf("%c ",(map[i] == TILE_WALL ? '#' : ' ' ));
   }
@@ -102,7 +117,6 @@ void printMap(){
 
 int main(int argc, char *argv[])
 {
-  printf("Hello World, I'm game!\n");
   generateMap();
   printMap();
   exit(EXIT_SUCCESS);

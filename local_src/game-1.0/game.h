@@ -76,7 +76,6 @@ void turnEvent(int);
 void printMap();
 
 int map[MAP_WIDTH*MAP_HEIGHT];
-
 Enemy enemies[MAP_WIDTH*MAP_HEIGHT];
 int maxEnemies = 0;
 
