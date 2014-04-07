@@ -13,20 +13,31 @@
 #define POWERUP_AMMO 1
 #define POWERUP_WEAPON 2
 
+// event types
+#define EVENT_MOVE_UP 0
+#define EVENT_MOVE_RIGHT 1
+#define EVENT_MOVE_DOWN 2
+#define EVENT_MOVE_LEFT 3
+#define EVENT_SHOOT_UP 4
+#define EVENT_SHOOT_RIGHT 5
+#define EVENT_SHOOT_DOWN 6
+#define EVENT_SHOOT_LEFT 7
+
+// map meta
+#define MAP_WIDTH 1
+#define MAP_HEIGHT 1
+
+int map[MAP_WIDTH*MAP_HEIGHT];
+
 typedef struct {
   int x;
   int y;
 } Position;
 
 typedef struct {
-  Position position;
-  int tileType;
-} Tile;
-
-typedef struct {
   int health;
   int damage;
-  int enemyType
+  int enemyType;
 } EnemyType;
 
 typedef struct {
@@ -39,6 +50,7 @@ typedef struct {
   int damageDelta;
   int healthDelta;
   int powerUpType;
+
 } PowerUpType;
 
 typedef struct {
