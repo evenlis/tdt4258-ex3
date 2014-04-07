@@ -27,12 +27,9 @@
 #define MAP_WIDTH 1
 #define MAP_HEIGHT 1
 
-int map[MAP_WIDTH*MAP_HEIGHT];
-
-Enemy enemies[MAP_WIDTH*MAP_HEIGHT];
-int maxEnemies = 0;
-
-Player player;
+// misc
+#define TRUE 1
+#define FALSE 0
 
 typedef struct {
   int x;
@@ -48,7 +45,7 @@ typedef struct {
 typedef struct {
   Position position;
   int health;
-  enemyType* enemyType;
+  EnemyType* enemyType;
 } Enemy;
 
 typedef struct {
@@ -70,5 +67,18 @@ typedef struct {
   int ammo;
   int damage;
 } Player;
+
+void movePlayer(int, int);
+void shootDirection(int, int);
+void generateMap();
+int enemyAtPosition(int, int);
+void turnEvent(int);
+
+int map[MAP_WIDTH*MAP_HEIGHT];
+
+Enemy enemies[MAP_WIDTH*MAP_HEIGHT];
+int maxEnemies = 0;
+
+Player player;
 
 #endif

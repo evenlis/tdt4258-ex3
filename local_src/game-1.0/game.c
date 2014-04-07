@@ -2,13 +2,11 @@
 #include <stdlib.h>
 #include "game.h"
 
-
 EnemyType Even = {
-  .maxHealth = 10;
-  .damage = 1;
-  .enemyType = 0;
+  .maxHealth = 10,
+  .damage = 1,
+  .enemyType = 0
 };
-
 
 void movePlayer(int x, int y){
 
@@ -43,12 +41,7 @@ void generateMap(){
       } else if (nofEnemies != 0 &&
 		 rand()%100 <= enemyRatio) {
 	--nofEnemies;
-	enemies[maxEnemies++] =
-	  { .position = {.x = 1;
-			 .y = 1};
-	    .enemyType = &Even;
-	    .health = Even.maxHealth;
-	  }
+	enemies[maxEnemies++] = (Enemy){(Position) {1, 1}, &Even, Even.maxHealth};
       }
       map[i] = TILE_SPACE;
     }
@@ -57,26 +50,24 @@ void generateMap(){
   while (map[randomPlayerPosition] == TILE_WALL ||
 	 enemyAtPosition(randomPlayerPosition % MAP_WIDTH, randomPlayerPosition / MAP_WIDTH)) {
     if (++randomPlayerPosition >= MAP_WIDTH*MAP_HEIGHT) {
-      Exit(1);
+      exit(1);
     }
   }
   player =
-    {
-    .position = { .x = randomPlayerPosition % MAP_WIDTH;
-		  .y = randomPlayerPosition / MAP_WIDTH; };
-    .health = 100;
-    .ammo = 100;
-    .damage = 100;
-    }
+    (Player){ { .x = randomPlayerPosition % MAP_WIDTH, .y = randomPlayerPosition / MAP_WIDTH },
+       100,
+       100,
+       100
+  };
 }
 
-bool enemyAtPosition(int x, int y) {
+int enemyAtPosition(int x, int y) {
   for (int i = 0; i <= maxEnemies; ++i) {
-    if (enemies[i].x == x &&
-	enemies[i].y == y)
-      return true;
+    if (enemies[i].position.x == x &&
+	enemies[i].position.y == y)
+      return TRUE;
   }
-  return false;
+  return FALSE;
 }
 
 void turnEvent(int event){
