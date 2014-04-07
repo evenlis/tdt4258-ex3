@@ -24,8 +24,8 @@
 #define EVENT_SHOOT_LEFT 7
 
 // map meta
-#define MAP_WIDTH 1
-#define MAP_HEIGHT 1
+#define MAP_WIDTH 10
+#define MAP_HEIGHT 10
 
 // misc
 #define TRUE 1
@@ -73,6 +73,7 @@ void shootDirection(int, int);
 void generateMap();
 int enemyAtPosition(int, int);
 void turnEvent(int);
+void printMap();
 
 int map[MAP_WIDTH*MAP_HEIGHT];
 

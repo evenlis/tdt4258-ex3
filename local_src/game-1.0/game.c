@@ -20,17 +20,14 @@ void generateMap(){
   int openSpaces = (MAP_HEIGHT-2)*(MAP_HEIGHT-2);
   int obstacleRatio = (rand()%5) + 5;
   int nofObstacles = openSpaces*obstacleRatio;
-
   int enemyRatio = (rand()%5) + 2;
   int nofEnemies = openSpaces * enemyRatio;
-
-
 
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i < MAP_WIDTH ||
        i % MAP_WIDTH == 0 ||
-       i % MAP_WIDTH-1 == 0 ||
-       i >= MAP_WIDTH*MAP_HEIGHT){
+       i % MAP_WIDTH == MAP_WIDTH-1 ||
+       i >= MAP_WIDTH*MAP_HEIGHT - MAP_WIDTH){
       map[i] = TILE_WALL;
     } else {
       if(nofObstacles != 0 &&
@@ -94,9 +91,19 @@ void turnEvent(int event){
   }
 }
 
+void printMap(){
+  for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
+    if(i%MAP_WIDTH == 0)
+      printf("\n");
+    printf("%c ",(map[i] == TILE_WALL ? '#' : ' ' ));
+  }
+  printf("\n");
+}
+
 int main(int argc, char *argv[])
 {
   printf("Hello World, I'm game!\n");
-
+  generateMap();
+  printMap();
   exit(EXIT_SUCCESS);
 }
