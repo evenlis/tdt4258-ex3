@@ -29,20 +29,26 @@
 
 int map[MAP_WIDTH*MAP_HEIGHT];
 
+Enemy enemies[MAP_WIDTH*MAP_HEIGHT];
+int maxEnemies = 0;
+
+Player player;
+
 typedef struct {
   int x;
   int y;
 } Position;
 
 typedef struct {
-  int health;
+  int maxHealth;
   int damage;
   int enemyType;
 } EnemyType;
 
 typedef struct {
   Position position;
-  enemyType enemyType;
+  int health;
+  enemyType* enemyType;
 } Enemy;
 
 typedef struct {

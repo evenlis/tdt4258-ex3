@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include "game.h"
 
+
+EnemyType Even = {
+  .maxHealth = 10;
+  .damage = 1;
+  .enemyType = 0;
+};
+
+
 void movePlayer(int x, int y){
 
 }
@@ -12,8 +20,14 @@ void shootDirection(int x, int y){
 
 void generateMap(){
   int openSpaces = (MAP_HEIGHT-2)*(MAP_HEIGHT-2);
-  float obstacleRatio = (rand()%5)/100.0 + 0.05;
-  int nofObstacles = (int)(openSpaces*obstacleRatio);
+  int obstacleRatio = (rand()%5) + 5;
+  int nofObstacles = openSpaces*obstacleRatio;
+
+  int enemyRatio = (rand()%5) + 2;
+  int nofEnemies = openSpaces * enemyRatio;
+
+
+
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i < MAP_WIDTH ||
        i % MAP_WIDTH == 0 ||
@@ -21,13 +35,48 @@ void generateMap(){
        i >= MAP_WIDTH*MAP_HEIGHT){
       map[i] = TILE_WALL;
     } else {
-      if(nofObstacles != 0){
-
+      if(nofObstacles != 0 &&
+	 rand()%100 <= obstacleRatio){
+	--nofObstacles;
+	map[i] = TILE_WALL;
+	continue;
+      } else if (nofEnemies != 0 &&
+		 rand()%100 <= enemyRatio) {
+	--nofEnemies;
+	enemies[maxEnemies++] =
+	  { .position = {.x = 1;
+			 .y = 1};
+	    .enemyType = &Even;
+	    .health = Even.maxHealth;
+	  }
       }
       map[i] = TILE_SPACE;
     }
   }
+  int randomPlayerPosition = rand()%MAP_WIDTH*MAP_HEIGHT-(MAP_WIDTH*2);
+  while (map[randomPlayerPosition] == TILE_WALL ||
+	 enemyAtPosition(randomPlayerPosition % MAP_WIDTH, randomPlayerPosition / MAP_WIDTH)) {
+    if (++randomPlayerPosition >= MAP_WIDTH*MAP_HEIGHT) {
+      Exit(1);
+    }
+  }
+  player =
+    {
+    .position = { .x = randomPlayerPosition % MAP_WIDTH;
+		  .y = randomPlayerPosition / MAP_WIDTH; };
+    .health = 100;
+    .ammo = 100;
+    .damage = 100;
+    }
+}
 
+bool enemyAtPosition(int x, int y) {
+  for (int i = 0; i <= maxEnemies; ++i) {
+    if (enemies[i].x == x &&
+	enemies[i].y == y)
+      return true;
+  }
+  return false;
 }
 
 void turnEvent(int event){
