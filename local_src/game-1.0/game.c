@@ -9,7 +9,17 @@ EnemyType Even = {
 };
 
 void movePlayer(int x, int y){
-
+  int newX = player.position.x + x;
+  int newY = player.position.y + y;
+  if(newX > 0 &&
+     newX < MAP_WIDTH - 1 &&
+     newY > 0 &&
+     newY < MAP_HEIGHT - 1 &&
+     map[newY * MAP_WIDTH + newX] != TILE_WALL &&
+     !enemyAtPosition(newX, newY)){
+    player.position.x = newX;
+    player.position.y = newY;
+  }
 }
 
 /*
@@ -57,7 +67,6 @@ void generateMap(){
   int nofObstacles = openSpaces*obstacleRatio;
   int enemyRatio = (rand()%5) + 2;
   int nofEnemies = openSpaces * enemyRatio;
-
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i < MAP_WIDTH ||
        i % MAP_WIDTH == 0 ||
@@ -159,8 +168,6 @@ void printMap(){
 int main(int argc, char *argv[])
 {
   generateMap();
-  printMap();
-  turnEvent(EVENT_SHOOT_UP);
   printMap();
   exit(EXIT_SUCCESS);
 }
