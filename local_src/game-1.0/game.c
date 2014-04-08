@@ -25,13 +25,20 @@ void movePlayer(int x, int y){
 /*
  * Returns NULL if there is no enemy at the provided coordinates
  */
-
 Enemy* getEnemyAtPosition(int x, int y){
   for(int i=0; i<maxEnemies; ++i){
     if(enemies[i].position.x == x && enemies[i].position.y == y)
       return &enemies[i];
   }
   return NULL;
+}
+
+int enemyAtPos(int pos){
+  for(int i=0; i<maxEnemies; ++i){
+    if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
+      return TRUE;
+  }
+  return FALSE;
 }
 
 void shootDirection(int x, int y){
@@ -49,11 +56,10 @@ void shootDirection(int x, int y){
 
 int randomFreeSpacePosition(){
   // subtract 2*MAP_WIDTH to ensure that a free space will be found
-  int randomPosition = rand()%MAP_WIDTH*MAP_HEIGHT-(MAP_WIDTH*2);
+  int randomPosition = rand()%(MAP_WIDTH*MAP_HEIGHT-MAP_WIDTH*2);
   // find first available space; if none is found, exit with an error
   while (map[randomPosition] == TILE_WALL ||
-	 enemyAtPosition(randomPosition % MAP_WIDTH, randomPosition / MAP_WIDTH) ||
-	 player.position.y * MAP_WIDTH + player.position.x == randomPosition) {
+	 enemyAtPos(randomPosition) ) {
     if (++randomPosition >= MAP_WIDTH*MAP_HEIGHT) {
       exit(1);
     }
@@ -64,43 +70,39 @@ int randomFreeSpacePosition(){
 void generateMap(){
   int openSpaces = (MAP_HEIGHT-2)*(MAP_HEIGHT-2);
   int obstacleRatio = (rand()%5) + 5;
-  int nofObstacles = openSpaces*obstacleRatio;
+  int nofObstacles = (int)(openSpaces*obstacleRatio/100.0);
   int enemyRatio = (rand()%5) + 2;
-  int nofEnemies = openSpaces * enemyRatio;
+  int nofEnemies = (int)(openSpaces * enemyRatio/100.0);
+  printf("obstacleRatio: %d, enemyRatio: %d, nofObstacles: %d, nofEnemies: %d\n", obstacleRatio, enemyRatio, nofObstacles, nofEnemies);
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i < MAP_WIDTH ||
        i % MAP_WIDTH == 0 ||
        i % MAP_WIDTH == MAP_WIDTH-1 ||
        i >= MAP_WIDTH*MAP_HEIGHT - MAP_WIDTH){
       map[i] = TILE_WALL;
+
     } else {
       if(nofObstacles != 0 &&
 	 rand()%100 <= obstacleRatio){
 	--nofObstacles;
 	map[i] = TILE_WALL;
 	continue;
-      } else if (nofEnemies != 0 &&
-		 rand()%100 <= enemyRatio) {
-	--nofEnemies;
-	int randPos = randomFreeSpacePosition();
-	enemies[maxEnemies++] = (Enemy){(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}, Even.maxHealth, &Even};
       }
       map[i] = TILE_SPACE;
     }
   }
-  int randomPlayerPosition = rand()%MAP_WIDTH*MAP_HEIGHT-(MAP_WIDTH*2);
-  while (map[randomPlayerPosition] == TILE_WALL ||
-	 enemyAtPosition(randomPlayerPosition % MAP_WIDTH, randomPlayerPosition / MAP_WIDTH)) {
-    if (++randomPlayerPosition >= MAP_WIDTH*MAP_HEIGHT) {
-      exit(1);
-    }
+  for(int i=0; i<nofEnemies; ++i){
+    int randPos = randomFreeSpacePosition();
+    enemies[maxEnemies++] = (Enemy){(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}, Even.maxHealth, &Even};
   }
+  int randomPlayerPosition = randomFreeSpacePosition();
   player =
     (Player){ { .x = randomPlayerPosition % MAP_WIDTH, .y = randomPlayerPosition / MAP_WIDTH },
-       100,
-       100,
-       50
+	      100,
+	      100,
+	      50
   };
+
 }
 
 int enemyAtPosition(int x, int y) {
@@ -136,16 +138,8 @@ void turnEvent(int event){
   }
 }
 
-int enemyAtPos(int pos){
-  for(int i=0; i<maxEnemies; ++i){
-    if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
-      return TRUE;
-  }
-  return FALSE;
-}
-
 void printMap(){
-  int playerPos = player.position.y*MAP_HEIGHT + player.position.x;
+  int playerPos = player.position.y*MAP_WIDTH + player.position.x;
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i==playerPos){
       printf("%c ", 'P');
@@ -153,8 +147,9 @@ void printMap(){
     } else if(enemyAtPos(i)){
       printf("%c ", 'E');
       continue;
-    } else if(i % MAP_WIDTH == 0)
+    } else if(i % MAP_WIDTH == 0){
       printf("\n");
+    }
     printf("%c ",(map[i] == TILE_WALL ? '#' : ' ' ));
   }
   printf("\n");

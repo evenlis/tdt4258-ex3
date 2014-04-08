@@ -24,8 +24,8 @@
 #define EVENT_SHOOT_LEFT 7
 
 // map meta
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 10
+#define MAP_WIDTH 11
+#define MAP_HEIGHT 11
 
 // misc
 #define TRUE 1
