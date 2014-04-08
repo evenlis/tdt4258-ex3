@@ -8,6 +8,12 @@ EnemyType Even = {
   .enemyType = 0
 };
 
+int getEnemyMove(Enemy* enemy){
+  int enemyX = enemy.position.x;
+  int enemyY = enemy.position.y;
+
+}
+
 void movePlayer(int x, int y){
   int newX = player.position.x + x;
   int newY = player.position.y + y;
@@ -33,7 +39,7 @@ Enemy* getEnemyAtPosition(int x, int y){
   return NULL;
 }
 
-int enemyAtPos(int pos){
+int enemyAtPositionFlat(int pos){
   for(int i=0; i<maxEnemies; ++i){
     if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
       return TRUE;
@@ -59,7 +65,7 @@ int randomFreeSpacePosition(){
   int randomPosition = rand()%(MAP_WIDTH*MAP_HEIGHT-MAP_WIDTH*2);
   // find first available space; if none is found, exit with an error
   while (map[randomPosition] == TILE_WALL ||
-	 enemyAtPos(randomPosition) ) {
+	 enemyAtPositionFlat(randomPosition) ) {
     if (++randomPosition >= MAP_WIDTH*MAP_HEIGHT) {
       exit(1);
     }
@@ -144,7 +150,7 @@ void printMap(){
     if(i==playerPos){
       printf("%c ", 'P');
       continue;
-    } else if(enemyAtPos(i)){
+    } else if(enemyAtPositionFlat(i)){
       printf("%c ", 'E');
       continue;
     } else if(i % MAP_WIDTH == 0){
