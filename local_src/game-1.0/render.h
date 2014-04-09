@@ -3,6 +3,6 @@
 
 #include "game.h";
 
-void drawMapState(int[], Enemy, Player);
+void drawMapState();
 
 #endif
