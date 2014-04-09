@@ -13,7 +13,6 @@ void calculateEnemyMove(Enemy* enemy){
   if(abs(enemy->position.x - player.position.x) == 1  && enemy->position.y - player.position.y == 0 ||
      abs(enemy->position.y - player.position.y) == 1 && enemy->position.x - player.position.x == 0){
     attackPlayer(enemy);
-    printf("WTF\n");
     return;
   }
   Position playerPos = player.position;
