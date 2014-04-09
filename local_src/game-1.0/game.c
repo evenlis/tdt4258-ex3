@@ -75,9 +75,16 @@ int enemyAtPosition(int x, int y) {
   return FALSE;
 }
 
-int enemyAtPositionFlat(int pos){
+int positionEqualsIndex(int index, Position position) {
+  return position.y*MAP_WIDTH + position.x == index;
+}
+int playerAtIndex(int index){
+  return positionEqualsIndex(index, player.position);
+}
+
+int enemyAtIndex(int index){
   for(int i=0; i<maxEnemies; ++i){
-    if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
+    if(positionEqualsIndex(index, enemies[i].position))
       return TRUE;
   }
   return FALSE;
@@ -105,6 +112,14 @@ void movePlayer(int x, int y){
   }
 }
 
+int wallAtIndex(int index){
+  return map[index] == TILE_WALL;
+}
+
+int spaceAtIndex(int index) {
+  return map[index] == TILE_SPACE;
+}
+
 void shootDirection(int x, int y){
   int xPos = player.position.x;
   int yPos = player.position.y;
@@ -123,7 +138,7 @@ int randomFreeSpacePosition(){
   int randomPosition = rand()%(MAP_WIDTH*MAP_HEIGHT-MAP_WIDTH*2);
   // find first available space; if none is found, exit with an error
   while (map[randomPosition] == TILE_WALL ||
-	 enemyAtPositionFlat(randomPosition) ) {
+	 enemyAtIndex(randomPosition) ) {
     if (++randomPosition >= MAP_WIDTH*MAP_HEIGHT) {
       exit(1);
     }
@@ -214,7 +229,7 @@ void printMap(){
     if(i==playerPos){
       printf("%c ", 'P');
       continue;
-    } else if(enemyAtPositionFlat(i)){
+    } else if(enemyAtIndex(i)){
       printf("%c ", 'E');
       continue;
     } else if(i % MAP_WIDTH == 0){

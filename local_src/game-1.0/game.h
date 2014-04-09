@@ -68,6 +68,14 @@ typedef struct {
   int damage;
 } Player;
 
+int positionEqualsIndex(int, Position);
+int playerAtindex(int);
+int enemyAtIndex(int);
+int wallAtIndex(int);
+int spaceAtIndex(int);
+
+
+
 void movePlayer(int, int);
 void shootDirection(int, int);
 void generateMap();
