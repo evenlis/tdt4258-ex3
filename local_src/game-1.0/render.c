@@ -16,6 +16,9 @@ void drawMapState() {
       *write = &PIXEL_WALL;
     } else if (spaceAtIndex(i)) {
       *write = &PIXEL_SPACE;
+    } else {
+      // critical failure
+      exit(1);
     }
 
     // j is each row in the "pixel art"
