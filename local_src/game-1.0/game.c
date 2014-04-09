@@ -3,14 +3,49 @@
 #include <stdarg.h>
 #include "game.h"
 
-EnemyType Even = {
-  .maxHealth = 100,
-  .damage = 1,
-  .enemyType = 0
-};
+int removeEnemyByPosition(int x, int y) {
+  EntityList* previous = NULL;
+  EntityList* current  = enemies;
+  EntityList* next     = NULL;
+  while(current) {
+    Position pos = current->entity.position;
 
-void calculateEnemyMove(Enemy* enemy){
-  if(abs(enemy->position.x - player.position.x) == 1  && enemy->position.y - player.position.y == 0 ||
+    if (pos.x == x && pos.y == y) {
+      if (previous) { // not the first element
+	previous->next = next;
+	free(current);
+	return TRUE;
+      }
+      else { // the first element, TODO CORRECT???
+	free(enemies);
+	enemies = next;
+	return TRUE;
+      }
+    }
+    previous = current;
+    current  = next;
+    next = &current->next;
+  }
+
+  return FALSE;
+}
+
+void addEnemy(Entity enemy) {
+  EntityList* current = enemies;
+  while(current) {
+    EntityList* next = current->next;
+    if (!next){
+      next = (EntityList*) malloc(sizeof(EntityList));
+      next->entity = enemy;
+      return;
+    }
+    current = next;
+
+  }
+}
+
+void calculateEnemyMove(Entity* enemy){
+  if(abs(enemy->position.x - player.position.x) == 1 && enemy->position.y - player.position.y == 0 ||
      abs(enemy->position.y - player.position.y) == 1 && enemy->position.x - player.position.x == 0){
     attackPlayer(enemy);
     return;
@@ -38,7 +73,7 @@ void calculateEnemyMove(Enemy* enemy){
     moveEnemy(enemy, EVENT_MOVE_LEFT);
 }
 
-void moveEnemy(Enemy* enemy, int event){
+void moveEnemy(Entity* enemy, int event){
   if(event==EVENT_MOVE_UP){
     enemy->position.y -= 1;
   } else if(event==EVENT_MOVE_RIGHT){
@@ -50,43 +85,26 @@ void moveEnemy(Enemy* enemy, int event){
   }
 }
 
-void attackPlayer(Enemy* enemy){
-  player.health -= enemy->enemyType->damage;
+void attackPlayer(Entity* enemy){
+  //  player.health -= enemy->enemyType->damage;
+  // kill player!
 }
 
 /*
  * Returns NULL if there is no enemy at the provided coordinates
  */
-Enemy* getEnemyAtPosition(int x, int y){
-  for(int i=0; i<maxEnemies; ++i){
-    if(enemies[i].position.x == x && enemies[i].position.y == y)
-      return &enemies[i];
+Entity* getEnemyAtPosition(int x, int y){
+
+  EntityList *current = enemies;
+  while(current) {
+    Position pos = current->entity.position;
+    if (pos.x == x && pos.y == y)
+      return &current->entity;
+
+    current = current->next;
+
   }
   return NULL;
-}
-
-int enemyAtPosition(int x, int y) {
-  for (int i = 0; i <= maxEnemies; ++i) {
-    if (enemies[i].position.x == x &&
-	enemies[i].position.y == y)
-      return TRUE;
-  }
-  return FALSE;
-}
-
-int positionEqualsIndex(int index, Position position) {
-  return position.y*MAP_WIDTH + position.x == index;
-}
-int playerAtIndex(int index){
-  return positionEqualsIndex(index, player.position);
-}
-
-int enemyAtIndex(int index){
-  for(int i=0; i<maxEnemies; ++i){
-    if(positionEqualsIndex(index, enemies[i].position))
-      return TRUE;
-  }
-  return FALSE;
 }
 
 int abs(int a){
@@ -111,13 +129,6 @@ void movePlayer(int x, int y){
   }
 }
 
-int wallAtIndex(int index){
-  return map[index] == TILE_WALL;
-}
-
-int spaceAtIndex(int index) {
-  return map[index] == TILE_SPACE;
-}
 
 void shootDirection(int x, int y){
   int xPos = player.position.x;
@@ -126,9 +137,8 @@ void shootDirection(int x, int y){
 	xPos != MAP_WIDTH-1 &&
 	(yPos += y) != 0 &&
 	yPos != MAP_HEIGHT-1){
-    Enemy* enemy = getEnemyAtPosition(xPos, yPos);
-    if(enemy != NULL)
-      enemy->health -= player.damage;
+    if (removeEnemyByPosition(xPos, yPos))
+      break;
   }
 }
 
@@ -137,7 +147,7 @@ int randomFreeSpacePosition(){
   int randomPosition = rand()%(MAP_WIDTH*MAP_HEIGHT-MAP_WIDTH*2);
   // find first available space; if none is found, exit with an error
   while (map[randomPosition] == TILE_WALL ||
-	 enemyAtIndex(randomPosition) ) {
+	 getEnemyAtPosition(randomPosition % MAP_WIDTH, randomPosition / MAP_WIDTH)) {
     if (++randomPosition >= MAP_WIDTH*MAP_HEIGHT) {
       exit(1);
     }
@@ -151,6 +161,8 @@ void generateMap(){
   int nofObstacles = (int)(openSpaces*obstacleRatio/100.0);
   int enemyRatio = (rand()%5) + 2;
   int nofEnemies = (int)(openSpaces * enemyRatio/100.0);
+
+  // generate map
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i < MAP_WIDTH ||
        i % MAP_WIDTH == 0 ||
@@ -168,16 +180,30 @@ void generateMap(){
       map[i] = TILE_SPACE;
     }
   }
+
+  // generate enemies
+  EntityList* prev = NULL;
+  EntityList* current = enemies;
   for(int i=0; i<nofEnemies; ++i){
     int randPos = randomFreeSpacePosition();
-    enemies[maxEnemies++] = (Enemy){(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}, Even.maxHealth, &Even};
+    current = (EntityList*) malloc(sizeof(EntityList));
+    current->entity = (Entity) {(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}};
+    current->next = NULL;
+
+    if (prev)
+      prev->next = current;
+
+    prev = current;
+
+
+
   }
+
+
+  // place player
   int randomPlayerPosition = randomFreeSpacePosition();
   player =
-    (Player){ { .x = randomPlayerPosition % MAP_WIDTH, .y = randomPlayerPosition / MAP_WIDTH },
-	      100,
-	      100,
-	      50
+    (Entity){ { .x = randomPlayerPosition % MAP_WIDTH, .y = randomPlayerPosition / MAP_WIDTH }
   };
 
 }
@@ -213,8 +239,11 @@ void turnEvent(int event){
 }
 
 void enemyTurn(){
-  for(int i=0; i<maxEnemies; ++i){
-    calculateEnemyMove(&enemies[i]);
+  EntityList* current = enemies;
+  while(current) {
+    calculateEnemyMove(&current->entity);
+    current = current->next;
+
   }
 }
 
@@ -237,10 +266,12 @@ void printMap(){
     printf("%c ",(map[i] == TILE_WALL ? '#' : ' ' ));
   }
   printf("\n");
-  for(int i=0; i<maxEnemies; ++i){
-    Enemy enemy = enemies[i];
-    Position pos = enemy.position;
-    printf("\nE(x=%d, y=%d)\nH: %d\n", pos.x, pos.y, enemy.health);
+
+  EntityList* current = enemies;
+  while(current) {
+    Position pos = current->entity.position;
+    printf("\nE(x=%d, y=%d)\n\n", pos.x, pos.y);
+    current = current->next;
   }
 }
 

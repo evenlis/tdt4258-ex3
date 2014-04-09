@@ -1,17 +1,9 @@
 #ifndef _GAME_H_
 #define _GAME_H_
 
-// enemy types
-#define ENEMY_ALIEN 0
-
 // tile types
 #define TILE_WALL 0
 #define TILE_SPACE 1
-
-// powerup types
-#define POWERUP_MEDKIT 0
-#define POWERUP_AMMO 1
-#define POWERUP_WEAPON 2
 
 // event types
 #define EVENT_MOVE_UP 0
@@ -37,44 +29,17 @@ typedef struct {
 } Position;
 
 typedef struct {
-  int maxHealth;
-  int damage;
-  int enemyType;
-} EnemyType;
-
-typedef struct {
   Position position;
-  int health;
-  EnemyType* enemyType;
-} Enemy;
+} Entity;
 
 typedef struct {
-  int ammoDelta;
-  int damageDelta;
-  int healthDelta;
-  int powerUpType;
+  Entity entity;
+  struct EntityList *next;
+} EntityList;
 
-} PowerUpType;
-
-typedef struct {
-  Position position;
-  PowerUpType powerUpType;
-} PowerUp;
-
-typedef struct {
-  Position position;
-  int health;
-  int ammo;
-  int damage;
-} Player;
-
-int positionEqualsIndex(int, Position);
-int playerAtindex(int);
-int enemyAtIndex(int);
-int wallAtIndex(int);
-int spaceAtIndex(int);
-
-
+Entity* getEnemyAtPosition(int, int);
+int removeEnemyByPosition(int, int);
+void addEnemy(Entity);
 
 void movePlayer(int, int);
 void shootDirection(int, int);
@@ -84,20 +49,21 @@ void turnEvent(int);
 void printMap();
 int randomFreeSpacePosition();
 int enemyAtPositionFlat(int);
-Enemy* getEnemyAtPosition(int, int);
+
 int hamiltonDistance(Position, Position);
-void moveEnemy(Enemy*, int);
-void calculateEnemyMove(Enemy*);
-void attackPlayer(Enemy*);
+void moveEnemy(Entity*, int);
+void calculateEnemyMove(Entity*);
+void attackPlayer(Entity*);
 int isFreeSpace(Position);
 int abs(int);
 void playerTurn();
 void enemyTurn();
 
 int map[MAP_WIDTH*MAP_HEIGHT];
-Enemy enemies[MAP_WIDTH*MAP_HEIGHT];
-int maxEnemies = 0;
 
-Player player;
+
+EntityList *enemies;
+
+Entity player;
 
 #endif
