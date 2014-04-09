@@ -3,7 +3,7 @@
 #include <string.h>
 
 
-void drawMapState(int[] map, Enemy[] enemies, Player player) {
+void drawMapState() {
 
   // i is each tile.
   for (int i = 0; i < MAP_WIDTH*MAP_HEIGHT; ++i) {
