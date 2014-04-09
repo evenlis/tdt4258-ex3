@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "game.h"
 
 EnemyType Even = {
@@ -8,10 +9,86 @@ EnemyType Even = {
   .enemyType = 0
 };
 
-int getEnemyMove(Enemy* enemy){
-  int enemyX = enemy.position.x;
-  int enemyY = enemy.position.y;
+void calculateEnemyMove(Enemy* enemy){
+  if(abs(enemy->position.x - player.position.x) == 1  && enemy->position.y - player.position.y == 0 ||
+     abs(enemy->position.y - player.position.y) == 1 && enemy->position.x - player.position.x == 0){
+    attackPlayer(enemy);
+    printf("WTF\n");
+    return;
+  }
+  Position playerPos = player.position;
+  Position enemyPos  = enemy->position;
+  int enemyX = enemyPos.x;
+  int enemyY = enemyPos.y;
+  int best = 1000000000;
+  Position up    = (Position){enemyX,   enemyY-1};
+  Position right = (Position){enemyX+1, enemyY};
+  Position down  = (Position){enemyX,   enemyY+1};
+  Position left  = (Position){enemyX-1, enemyY};
+  if(isFreeSpace(up) &&
+     hamiltonDistance(up, playerPos) < hamiltonDistance(enemyPos, playerPos))
+    moveEnemy(enemy, EVENT_MOVE_UP);
+  else if(isFreeSpace(right) &&
+	  hamiltonDistance(right, playerPos) < hamiltonDistance(enemyPos, playerPos))
+    moveEnemy(enemy, EVENT_MOVE_RIGHT);
+  else if(isFreeSpace(down) &&
+	  hamiltonDistance(down, playerPos) < hamiltonDistance(enemyPos, playerPos))
+    moveEnemy(enemy, EVENT_MOVE_DOWN);
+  else if(isFreeSpace(left) &&
+	  hamiltonDistance(left, playerPos) < hamiltonDistance(enemyPos, playerPos))
+    moveEnemy(enemy, EVENT_MOVE_LEFT);
+}
 
+void moveEnemy(Enemy* enemy, int event){
+  if(event==EVENT_MOVE_UP){
+    enemy->position.y -= 1;
+  } else if(event==EVENT_MOVE_RIGHT){
+    enemy->position.x += 1;
+  } else if(event==EVENT_MOVE_DOWN){
+    enemy->position.y += 1;
+  } else {
+    enemy->position.x -= 1;
+  }
+}
+
+void attackPlayer(Enemy* enemy){
+  player.health -= enemy->enemyType->damage;
+}
+
+/*
+ * Returns NULL if there is no enemy at the provided coordinates
+ */
+Enemy* getEnemyAtPosition(int x, int y){
+  for(int i=0; i<maxEnemies; ++i){
+    if(enemies[i].position.x == x && enemies[i].position.y == y)
+      return &enemies[i];
+  }
+  return NULL;
+}
+
+int enemyAtPosition(int x, int y) {
+  for (int i = 0; i <= maxEnemies; ++i) {
+    if (enemies[i].position.x == x &&
+	enemies[i].position.y == y)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+int enemyAtPositionFlat(int pos){
+  for(int i=0; i<maxEnemies; ++i){
+    if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+int abs(int a){
+  return (a < 0 ? -a : a);
+}
+
+int hamiltonDistance(Position a, Position b){
+  return abs(a.x-b.x) + abs(a.y-b.y);
 }
 
 void movePlayer(int x, int y){
@@ -26,25 +103,6 @@ void movePlayer(int x, int y){
     player.position.x = newX;
     player.position.y = newY;
   }
-}
-
-/*
- * Returns NULL if there is no enemy at the provided coordinates
- */
-Enemy* getEnemyAtPosition(int x, int y){
-  for(int i=0; i<maxEnemies; ++i){
-    if(enemies[i].position.x == x && enemies[i].position.y == y)
-      return &enemies[i];
-  }
-  return NULL;
-}
-
-int enemyAtPositionFlat(int pos){
-  for(int i=0; i<maxEnemies; ++i){
-    if(enemies[i].position.y*MAP_WIDTH + enemies[i].position.x == pos)
-      return TRUE;
-  }
-  return FALSE;
 }
 
 void shootDirection(int x, int y){
@@ -79,7 +137,6 @@ void generateMap(){
   int nofObstacles = (int)(openSpaces*obstacleRatio/100.0);
   int enemyRatio = (rand()%5) + 2;
   int nofEnemies = (int)(openSpaces * enemyRatio/100.0);
-  printf("obstacleRatio: %d, enemyRatio: %d, nofObstacles: %d, nofEnemies: %d\n", obstacleRatio, enemyRatio, nofObstacles, nofEnemies);
   for(int i=0; i<MAP_WIDTH*MAP_HEIGHT; ++i){
     if(i < MAP_WIDTH ||
        i % MAP_WIDTH == 0 ||
@@ -111,37 +168,44 @@ void generateMap(){
 
 }
 
-int enemyAtPosition(int x, int y) {
-  for (int i = 0; i <= maxEnemies; ++i) {
-    if (enemies[i].position.x == x &&
-	enemies[i].position.y == y)
-      return TRUE;
-  }
+int isFreeSpace(Position pos){
+  if(pos.x > 0 && pos.x < MAP_WIDTH - 1 && pos.y > 0 && pos.y < MAP_HEIGHT - 1)
+    return map[pos.y * MAP_WIDTH + pos.x];
   return FALSE;
 }
 
 void turnEvent(int event){
-  if(event<4){
-    if(event==EVENT_MOVE_UP){
+  if(event < 4){
+    if(event == EVENT_MOVE_UP){
       movePlayer(0,-1);
-    } else if(event==EVENT_MOVE_RIGHT){
+    } else if(event == EVENT_MOVE_RIGHT){
       movePlayer(1,0);
-    } else if(event==EVENT_MOVE_DOWN){
+    } else if(event == EVENT_MOVE_DOWN){
       movePlayer(0,1);
     } else {
       movePlayer(-1,0);
     }
   } else {
-    if(event==EVENT_SHOOT_UP){
+    if(event == EVENT_SHOOT_UP){
       shootDirection(0,-1);
-    } else if(event==EVENT_SHOOT_RIGHT){
+    } else if(event == EVENT_SHOOT_RIGHT){
       shootDirection(1,0);
-    } else if(event==EVENT_SHOOT_DOWN){
+    } else if(event == EVENT_SHOOT_DOWN){
       shootDirection(0,1);
     } else {
       shootDirection(-1,0);
     }
   }
+}
+
+void enemyTurn(){
+  for(int i=0; i<maxEnemies; ++i){
+    calculateEnemyMove(&enemies[i]);
+  }
+}
+
+void playerTurn(){
+  //TODO: get player's move
 }
 
 void printMap(){

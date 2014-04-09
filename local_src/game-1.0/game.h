@@ -1,4 +1,4 @@
-4#ifndef _GAME_H_
+#ifndef _GAME_H_
 #define _GAME_H_
 
 // enemy types
@@ -30,9 +30,6 @@
 // misc
 #define TRUE 1
 #define FALSE 0
-
-#define MIN(a,b) (a>=b ? a : b)
-#define ABS(a) (a-0 ? -a : a)
 
 typedef struct {
   int x;
@@ -80,7 +77,14 @@ void printMap();
 int randomFreeSpacePosition();
 int enemyAtPositionFlat(int);
 Enemy* getEnemyAtPosition(int, int);
-int getEnemyMove(Enemy* enemy);
+int hamiltonDistance(Position, Position);
+void moveEnemy(Enemy*, int);
+void calculateEnemyMove(Enemy*);
+void attackPlayer(Enemy*);
+int isFreeSpace(Position);
+int abs(int);
+void playerTurn();
+void enemyTurn();
 
 int map[MAP_WIDTH*MAP_HEIGHT];
 Enemy enemies[MAP_WIDTH*MAP_HEIGHT];
@@ -89,4 +93,3 @@ int maxEnemies = 0;
 Player player;
 
 #endif
-<
