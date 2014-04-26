@@ -44,7 +44,13 @@ void addEnemy(Entity);
 void movePlayer(int, int);
 void shootDirection(int, int);
 void generateMap();
+
 int enemyAtPosition(int, int);
+int enemyAtIndex(int);
+int playerAtIndex(int);
+int wallAtIndex(int);
+int spaceAtIndex(int);
+
 void turnEvent(int);
 void printMap();
 int randomFreeSpacePosition();

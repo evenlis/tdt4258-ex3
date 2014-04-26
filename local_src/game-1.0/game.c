@@ -56,8 +56,22 @@ int enemyAtIndex(int index) {
     current = current->next;
   }
   return FALSE;
+}
+int playerAtIndex(int index) {
+  int x = index % MAP_WIDTH;
+  int y = index / MAP_WIDTH;
 
+  return player.position.x == x && player.position.y == y;
 
+}
+
+int wallAtIndex(int index) {
+  return map[index] == TILE_WALL;
+
+}
+
+int spaceAtIndex(int index) {
+  return map[index] == TILE_SPACE;
 }
 
 void calculateEnemyMove(Entity* enemy){
