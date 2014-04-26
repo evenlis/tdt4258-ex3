@@ -32,10 +32,10 @@ typedef struct {
   Position position;
 } Entity;
 
-typedef struct {
+struct EntityList {
   Entity entity;
   struct EntityList *next;
-} EntityList;
+};
 
 Entity* getEnemyAtPosition(int, int);
 int removeEnemyByPosition(int, int);
@@ -62,7 +62,7 @@ void enemyTurn();
 int map[MAP_WIDTH*MAP_HEIGHT];
 
 
-EntityList *enemies;
+struct EntityList *enemies;
 
 Entity player;
 

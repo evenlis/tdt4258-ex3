@@ -4,12 +4,11 @@
 #include "game.h"
 
 int removeEnemyByPosition(int x, int y) {
-  EntityList* previous = NULL;
-  EntityList* current  = enemies;
-  EntityList* next     = NULL;
+  struct EntityList* previous = NULL;
+  struct EntityList* current  = enemies;
+  struct EntityList* next     = NULL;
   while(current) {
     Position pos = current->entity.position;
-
     if (pos.x == x && pos.y == y) {
       if (previous) { // not the first element
 	previous->next = next;
@@ -24,18 +23,18 @@ int removeEnemyByPosition(int x, int y) {
     }
     previous = current;
     current  = next;
-    next = &current->next;
+    next = current->next;
   }
 
   return FALSE;
 }
 
 void addEnemy(Entity enemy) {
-  EntityList* current = enemies;
+  struct EntityList* current = enemies;
   while(current) {
-    EntityList* next = current->next;
+    struct EntityList* next = current->next;
     if (!next){
-      next = (EntityList*) malloc(sizeof(EntityList));
+      next = (struct EntityList*) malloc(sizeof(struct EntityList));
       next->entity = enemy;
       return;
     }
@@ -44,9 +43,26 @@ void addEnemy(Entity enemy) {
   }
 }
 
+int enemyAtIndex(int index) {
+  int x = index % MAP_WIDTH;
+  int y = index / MAP_WIDTH;
+
+  struct EntityList* current = enemies;
+  while(current) {
+    if (current->entity.position.x == x &&
+	current->entity.position.y == y)
+      return TRUE;
+
+    current = current->next;
+  }
+  return FALSE;
+
+
+}
+
 void calculateEnemyMove(Entity* enemy){
-  if(abs(enemy->position.x - player.position.x) == 1 && enemy->position.y - player.position.y == 0 ||
-     abs(enemy->position.y - player.position.y) == 1 && enemy->position.x - player.position.x == 0){
+  if((abs(enemy->position.x - player.position.x) == 1 && enemy->position.y - player.position.y == 0) ||
+     (abs(enemy->position.y - player.position.y) == 1 && enemy->position.x - player.position.x == 0)){
     attackPlayer(enemy);
     return;
   }
@@ -54,7 +70,7 @@ void calculateEnemyMove(Entity* enemy){
   Position enemyPos  = enemy->position;
   int enemyX = enemyPos.x;
   int enemyY = enemyPos.y;
-  int best = 1000000000;
+  //  int best = 1000000000;
   Position up    = (Position){enemyX,   enemyY-1};
   Position right = (Position){enemyX+1, enemyY};
   Position down  = (Position){enemyX,   enemyY+1};
@@ -95,7 +111,7 @@ void attackPlayer(Entity* enemy){
  */
 Entity* getEnemyAtPosition(int x, int y){
 
-  EntityList *current = enemies;
+  struct EntityList *current = enemies;
   while(current) {
     Position pos = current->entity.position;
     if (pos.x == x && pos.y == y)
@@ -123,7 +139,7 @@ void movePlayer(int x, int y){
      newY > 0 &&
      newY < MAP_HEIGHT - 1 &&
      map[newY * MAP_WIDTH + newX] != TILE_WALL &&
-     !enemyAtPosition(newX, newY)){
+     !getEnemyAtPosition(newX, newY)){
     player.position.x = newX;
     player.position.y = newY;
   }
@@ -182,11 +198,11 @@ void generateMap(){
   }
 
   // generate enemies
-  EntityList* prev = NULL;
-  EntityList* current = enemies;
+  struct EntityList* prev = NULL;
+  struct EntityList* current = enemies;
   for(int i=0; i<nofEnemies; ++i){
     int randPos = randomFreeSpacePosition();
-    current = (EntityList*) malloc(sizeof(EntityList));
+    current = (struct EntityList*) malloc(sizeof(struct EntityList));
     current->entity = (Entity) {(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}};
     current->next = NULL;
 
@@ -239,7 +255,7 @@ void turnEvent(int event){
 }
 
 void enemyTurn(){
-  EntityList* current = enemies;
+  struct EntityList* current = enemies;
   while(current) {
     calculateEnemyMove(&current->entity);
     current = current->next;
@@ -267,7 +283,7 @@ void printMap(){
   }
   printf("\n");
 
-  EntityList* current = enemies;
+  struct EntityList* current = enemies;
   while(current) {
     Position pos = current->entity.position;
     printf("\nE(x=%d, y=%d)\n\n", pos.x, pos.y);
