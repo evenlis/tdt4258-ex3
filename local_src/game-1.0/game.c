@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
+
 #include "game.h"
+
 
 int removeEnemyByPosition(int x, int y) {
   struct EntityList* previous = NULL;
@@ -189,7 +192,7 @@ void generateMap(){
   int openSpaces = (MAP_HEIGHT-2)*(MAP_HEIGHT-2);
   int obstacleRatio = (rand()%5) + 5;
   int nofObstacles = (int)(openSpaces*obstacleRatio/100.0);
-  int enemyRatio = (rand()%5) + 2;
+  int enemyRatio = (rand()%9) + 4;
   int nofEnemies = (int)(openSpaces * enemyRatio/100.0);
 
   // generate map
@@ -213,19 +216,27 @@ void generateMap(){
 
   // generate enemies
   struct EntityList* prev = NULL;
-  struct EntityList* current = enemies;
+  struct EntityList* current = NULL;
+
+
+  printf("%d", nofEnemies);
   for(int i=0; i<nofEnemies; ++i){
     int randPos = randomFreeSpacePosition();
-    current = (struct EntityList*) malloc(sizeof(struct EntityList));
-    current->entity = (Entity) {(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}};
-    current->next = NULL;
+    if (!prev) { // brute: første
+      prev =  (struct EntityList*) malloc(sizeof(struct EntityList));
+      prev->entity = (Entity) {(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}};
+      prev->next = NULL;
+      enemies = prev;
+    } else {
+      current =  (struct EntityList*) malloc(sizeof(struct EntityList));
+      current->entity = (Entity) {(Position) {randPos%MAP_WIDTH, randPos/MAP_WIDTH}};
+      current->next = NULL;
 
-    if (prev)
       prev->next = current;
+      prev = current;
 
-    prev = current;
 
-
+    }
 
   }
 
@@ -307,7 +318,7 @@ void printMap(){
 
 int main(int argc, char *argv[])
 {
+  srand(time(NULL));
   generateMap();
   printMap();
-  exit(EXIT_SUCCESS);
 }
