@@ -1,0 +1,76 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{float}
+\usepackage[superscript]{cite}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\title{TDT4258: Excercise 2}
+\author{Halvor G. Bjørnstad, Even Lislebø}
+\date{\today}
+
+\lstset {
+  language=C,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  keywordstyle=\color{blue},
+  stringstyle=\color{green},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4,
+  xleftmargin=.5in
+}
+
+\hypersetup{
+  colorlinks,
+  citecolor=black,
+  linkcolor=black,
+  urlcolor=black
+}
+
+\begin{document}
+\maketitle
+\section*{Introduction}
+\paragraph{}
+This report describes the group's efforts to solve excercise 3 in the course TDT4258. The task is to make a retro-style game for the EFM32 Gecko board with energy optimization in mind.
+
+\section*{Description and Methodology}
+\paragraph{The game}
+The game is a 1-player, turn-based shooter. The map is generated with 4 walls, some obstacles (wall pieces randomly positioned on the board), a random (but within a certain interval) number of enemies, and of course the player. For each turn, the player must choose to either move up, down, left or right, or to shoot in one of said directions. If an enemy makes it to the tile next to the player, the game is over.
+
+\paragraph{Technology}
+The game will be written in C, and linked as a driver with the uClinux kernel distribution running on the board.
+
+\subsection*{Results and Tests}
+
+\subsection*{Brief Code Overview}
+The map generation algorithm calculates the number of obstacles and enemies to be placed with a random percentage (of the number of open spaces) of 5-10 and 9-13, respectively:
+\begin{lstlisting}
+  int obstacleRatio = (rand()%5) + 5;
+  int nofObstacles = (int)(openSpaces*obstacleRatio/100.0);
+  int enemyRatio = (rand()%9) + 4;
+  int nofEnemies = (int)(openSpaces * enemyRatio/100.0);
+\end{lstlisting}
+
+\subsection*{Energy Efficiency Measures}
+\paragraph{Deep Sleep}
+The device is in deep sleep by default, only a GPIO interrupt can wake it.
+
+\paragraph{Possible Improvements}
+
+\paragraph{Effects of employed measusers}
+
+\section*{Results and Tests}
+
+\section*{Evaluation of Assignment}
+\paragraph{}
+\section*{Conclusion}
+\paragraph{}
+
+\begin{thebibliography}{9}
+\end{thebibliography}
+\end{document}
