@@ -157,7 +157,7 @@ static void __exit gpio_cleanup(void) {
   class_destroy(cl);
   cdev_del(&gpio_cdev);
 
-  unregister_chrdev_region(&dev_num, 1);
+  unregister_chrdev_region(dev_num, 1);
 
 
   printk(KERN_INFO "Short life for a small module...\n");

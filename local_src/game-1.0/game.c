@@ -289,7 +289,7 @@ int setupGamepad(){
     printf("Error opening gamepad driver\n");
     return -1;
   }
-  if(signal(SIGIO, %input_handler) == SIG_ERR){
+  if(signal(SIGIO, &input_handler) == SIG_ERR){
     printf("Error creating signal handler\n");
     return -1;
   }
@@ -332,27 +332,6 @@ int isButtonPressed(const unsigned int buttonStatii, const unsigned int buttonNu
 
 }
 
-void gpio_handler() {
-
-  if (isButtonPressed(*GPIO_PC_DIN, 0)) {
-    setupDAC();
-    *SCR = 0x4;
-    startSong(&DAMAGE_TAKEN);
-
-  } else if(isButtonPressed(*GPIO_PC_DIN, 1)){
-    setupDAC();
-    *SCR = 0x4;
-    startSong(&SHOOT);
-  } else if(isButtonPressed(*GPIO_PC_DIN, 2)){
-    setupDAC();
-    *SCR = 0x4;
-    startSong(&SUNSHINE);
-  }
-
-
-  /* TODO handle button pressed event, remember to clear pending interrupt */
-  *GPIO_IFC = 0xff;
-}
 
 int init(){
   if(setupGamepad() == -1){

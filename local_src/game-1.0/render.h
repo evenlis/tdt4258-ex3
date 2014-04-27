@@ -2,7 +2,7 @@
 #define _RENDER_H_
 
 #include "game.h"
-void setupFrameBuffer();
+int setupFrameBuffer();
 void drawMapState();
 
 #endif

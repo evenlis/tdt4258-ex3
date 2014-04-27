@@ -1,3 +1,8 @@
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 1
+#define _GNU_SOURCE 1
+#endif
+
 #ifndef _GAME_H_
 #define _GAME_H_
 
@@ -6,7 +11,10 @@
 #include <stdarg.h>
 #include <time.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <signal.h>
+
+#include "render.h"
 
 // tile types
 #define TILE_WALL 0
