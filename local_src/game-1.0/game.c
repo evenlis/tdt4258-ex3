@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <time.h>
-
 #include "game.h"
-
 
 int removeEnemyByPosition(int x, int y) {
   struct EntityList* previous = NULL;
@@ -277,6 +271,7 @@ void turnEvent(int event){
       shootDirection(-1,0);
     }
   }
+  enemyTurn();
 }
 
 void enemyTurn(){
@@ -288,8 +283,87 @@ void enemyTurn(){
   }
 }
 
-void playerTurn(){
-  //TODO: get player's move
+int setupGamepad(){
+  driver = fopen("/dev/GPIO_GAMEPAD", "rb");
+  if(!driver){
+    printf("Error opening gamepad driver\n");
+    return -1;
+  }
+  if(signal(SIGIO, %input_handler) == SIG_ERR){
+    printf("Error creating signal handler\n");
+    return -1;
+  }
+  if(fcntl(fileno(driver), F_SETOWN, getpid()) == -1){
+    printf("Error setting process as owner\n");
+    return -1;
+  }
+  long oflags = fcntl(fileno(driver), F_GETFL);
+  if(fcntl(fileno(driver), F_SETFL, oflags | FASYNC) == -1){
+    printf("Error setting FASYNC flag\n");
+    return -1;
+  }
+  return 0;
+}
+
+void input_handler(int signal_no){
+  int buttonStatus = fgetc(driver);
+  if(isButtonPressed(buttonStatus, 0)){
+    turnEvent(EVENT_MOVE_LEFT);
+  }else if(isButtonPressed(buttonStatus, 1)){
+    turnEvent(EVENT_MOVE_UP);
+  }else if(isButtonPressed(buttonStatus, 2)){
+    turnEvent(EVENT_MOVE_RIGHT);
+  }else if(isButtonPressed(buttonStatus, 3)){
+    turnEvent(EVENT_MOVE_DOWN);
+  }else if(isButtonPressed(buttonStatus, 4)){
+    turnEvent(EVENT_SHOOT_LEFT);
+  }else if(isButtonPressed(buttonStatus, 5)){
+    turnEvent(EVENT_SHOOT_UP);
+  }else if(isButtonPressed(buttonStatus, 6)){
+    turnEvent(EVENT_SHOOT_RIGHT);
+  }else if(isButtonPressed(buttonStatus, 7)){
+    turnEvent(EVENT_SHOOT_DOWN);
+  }
+
+}
+
+int isButtonPressed(const unsigned int buttonStatii, const unsigned int buttonNumber) {
+  return ((buttonStatii & (1 << buttonNumber)) != (1 << buttonNumber));
+
+}
+
+void gpio_handler() {
+
+  if (isButtonPressed(*GPIO_PC_DIN, 0)) {
+    setupDAC();
+    *SCR = 0x4;
+    startSong(&DAMAGE_TAKEN);
+
+  } else if(isButtonPressed(*GPIO_PC_DIN, 1)){
+    setupDAC();
+    *SCR = 0x4;
+    startSong(&SHOOT);
+  } else if(isButtonPressed(*GPIO_PC_DIN, 2)){
+    setupDAC();
+    *SCR = 0x4;
+    startSong(&SUNSHINE);
+  }
+
+
+  /* TODO handle button pressed event, remember to clear pending interrupt */
+  *GPIO_IFC = 0xff;
+}
+
+int init(){
+  if(setupGamepad() == -1){
+    printf("Error setting up gamepad\n");
+    return -1;
+  }
+  if(setupFrameBuffer() == -1){
+    printf("Error setting up framebuffer\n");
+    return -1;
+  }
+  return 0;
 }
 
 void printMap(){

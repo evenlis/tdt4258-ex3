@@ -1,6 +1,13 @@
 #ifndef _GAME_H_
 #define _GAME_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <time.h>
+#include <fcntl.h>
+#include <signal.h>
+
 // tile types
 #define TILE_WALL 0
 #define TILE_SPACE 1
@@ -23,6 +30,8 @@
 #define TRUE 1
 #define FALSE 0
 
+FILE* driver;
+
 typedef struct {
   int x;
   int y;
@@ -36,6 +45,12 @@ struct EntityList {
   Entity entity;
   struct EntityList *next;
 };
+
+int setupGamepad();
+int init();
+void input_handler(int);
+void gpio_handler();
+int isButtonPressed(const unsigned int, const unsigned int);
 
 Entity* getEnemyAtPosition(int, int);
 int removeEnemyByPosition(int, int);

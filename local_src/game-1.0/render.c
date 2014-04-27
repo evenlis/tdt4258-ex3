@@ -3,9 +3,9 @@
 #include <string.h>
 
 
-void setupFrameBuffer() {
-  return;
+int setupFrameBuffer() {
 
+  return 0;
 }
 
 void drawMapState() {
