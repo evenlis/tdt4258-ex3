@@ -7,17 +7,28 @@
 #include <linux/init.h>
 #include <linux/fs.h>
 #include <linux/ioport.h>
-#include "efm32gg.h"
+#include <linux/cdev.h>
+#include <linux/device.h>
 
+#include <linux/interrupt.h>
+#include <linux/sched.h>
+#include <linux/irq.h>
+#include <linux/signal.h>
+#include <linux/uaccess.h>
+
+
+#include <asm/io.h>
+
+#include "efm32gg.h"
 
 #define DEVICE_NAME "GPIO_GAMEPAD"
 
-irqreturn_t interrupt_handler(int irq, void *dev_id, struct pt_regs *regs);
+irqreturn_t interrupt_handler(int irq, void* dev_id, struct pt_regs* regs);
 
 static ssize_t gpio_read(struct file* filp, char __user* buff, size_t count, loff_t* offp);
 static ssize_t gpio_write(struct file* filp, const char __user* buff, size_t count,  loff_t* offp);
-static int gpio_open(struct inode∗ inode, struct file* filp);
-static int gpio_release(struct inode∗ inode, struct file* filp);
+static int gpio_open(struct inode* inode, struct file* filp);
+static int gpio_release(struct inode* inode, struct file* filp);
 static int gpio_fasync(int fd, struct file* filp, int mode);
 
 
@@ -52,40 +63,40 @@ static struct file_operations gpio_fops = {
 
 
 static int __init gpio_init(void) {
-  printk("Initializing %s driver...", DEVICE_NAME);
+  printk(KERN_INFO "Initializing %s driver...", DEVICE_NAME);
 
   // fetch device num, see pg. 45 in ldd (cp. 3)
   if (alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME)) {
-    printk("FAILURE alloc_chrdev_regeion!");
+    printk(KERN_INFO "FAILURE alloc_chrdev_regeion!");
     return -1;
   }
 
   // setup I/O ports:
-  if (!request_mem_region(GPIO_PC_MODEL, 4, DRIVER_NAME)) {
-    printk("FAILURE TO ALLOCATE: GPIO_PC_MODEL");
+  if (!request_mem_region(GPIO_PC_MODEL, 4, DEVICE_NAME)) {
+    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_PC_MODEL");
     return -1;
   }
-  if (!request_mem_region(GPIO_PC_DOUT, 4, DRIVER_NAME)) {
-    printk("FAILURE TO ALLOCATE: GPIO_PC_DOUT");
-    return -1;
-  }
-
-  if (!request_mem_region(GPIO_EXTIPSELL, 4, DRIVER_NAME)) {
-    printk("FAILURE TO ALLOCATE: GPIO_EXTIPSELL");
+  if (!request_mem_region(GPIO_PC_DOUT, 4, DEVICE_NAME)) {
+    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_PC_DOUT");
     return -1;
   }
 
-  if (!request_mem_region(GPIO_EXTIFALL, 4, DRIVER_NAME)) {
-    printk("FAILURE TO ALLOCATE: GPIO_EXTIFALL");
+  if (!request_mem_region(GPIO_EXTIPSELL, 4, DEVICE_NAME)) {
+    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_EXTIPSELL");
     return -1;
   }
 
-  if (!request_mem_region(GPIO_IEN, 4, DRIVER_NAME)) {
-    printk("FAILURE TO ALLOCATE: GPIO_IEN");
+  if (!request_mem_region(GPIO_EXTIFALL, 4, DEVICE_NAME)) {
+    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_EXTIFALL");
     return -1;
   }
-  if (!request_mem_region(GPIO_IFC, 4, DRIVER_NAME)) {
-    printk("FAILURE TO ALLOCATE: GPIO_IFC");
+
+  if (!request_mem_region(GPIO_IEN, 4, DEVICE_NAME)) {
+    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_IEN");
+    return -1;
+  }
+  if (!request_mem_region(GPIO_IFC, 4, DEVICE_NAME)) {
+    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_IFC");
     return -1;
   }
 
@@ -97,7 +108,7 @@ static int __init gpio_init(void) {
   // set up GPIO interrupts!
   if (request_irq(17, interrupt_handler, 0, DEVICE_NAME, &gpio_cdev) || // EVEN
       request_irq(18, interrupt_handler, 0, DEVICE_NAME, &gpio_cdev)) { // ODD
-    printk("FAILURE request_irq!");
+    printk(KERN_INFO "FAILURE request_irq!");
     return -1;
   }
 
@@ -112,14 +123,14 @@ static int __init gpio_init(void) {
   cdev.ops = &gpio_fops;
 
   if (cdev_add(&gpio_cdev, dev_num,1)) {
-    printk("FAILURE cdev_add");
+    printk(KERN_INFO "FAILURE cdev_add");
     return -1;
   }
-  cl = class_create(THIS_MODULE, DRIVER_NAME);
-  device_create(cl, NULL, dev_num, NULL, DRIVER_NAME);z3
+  cl = class_create(THIS_MODULE, DEVICE_NAME);
+  device_create(cl, NULL, dev_num, NULL, DEVICE_NAME);
 
 
-  printk("Hello World, here is your GPIO-module speaking\n");
+  printk(KERN_INFO "Hello World, here is your GPIO-module speaking\n");
   return 0;
 }
 
@@ -140,8 +151,8 @@ static void __exit gpio_cleanup(void) {
   release_mem_region(GPIO_IFC, 4);
 
   // remove irq handlers
-  free_irq(GPIO_EVEN_IRQ_LINE, &gpio_cdev);
-  free_irq(GPIO_ODD_IRQ_LINE,  &gpio_cdev);
+  free_irq(17, &gpio_cdev);
+  free_irq(18, &gpio_cdev);
 
   // destroy device driver
   device_destroy(cl, dev_num);
@@ -151,7 +162,7 @@ static void __exit gpio_cleanup(void) {
   unregister_chrdev_region(&dev_num, 1);
 
 
-  printk("Short life for a small module...\n");
+  printk(KERN_INFO "Short life for a small module...\n");
 }
 
 irqreturn_t interrupt_handler(int irq, void *dev_id, struct pt_regs *regs) {
@@ -160,7 +171,7 @@ irqreturn_t interrupt_handler(int irq, void *dev_id, struct pt_regs *regs) {
   if (async_queue)
     kill_fasync(&async_queue, SIGIO, POLL_IN);
 
-  printk("Interrupt successfully handled.");
+  printk(KERN_INFO "Interrupt successfully handled.");
   return IRQ_HANDLED;
 }
 
@@ -169,24 +180,24 @@ static ssize_t gpio_read(struct file* filp, char __user* buff, size_t count, lof
   //http://www.gnugeneration.com/mirrors/kernel-api/r4299.html
   uint8_t gpio_button_state = ioread8(GPIO_PC_DIN);
   if (copy_to_user(buff, &gpio_button_state, 1)) {
-    printk("READ FAILURE Could not copy all data!");
+    printk(KERN_INFO "READ FAILURE Could not copy all data!");
     return 0;
   }
   return 1; // byte length, not error code
 }
 
 static ssize_t gpio_write(struct file* filp, const char __user* buff, size_t count,  loff_t* offp) {
-  printk("GPIO WRITTEN?!");
+  printk(KERN_INFO "GPIO WRITTEN?!");
   return 0;
 }
 
-static int gpio_open(struct inode∗ inode, struct file* filp) {
-  printk("GPIO OPENED?!");
+static int gpio_open(struct inode* inode, struct file* filp) {
+  printk(KERN_INFO "GPIO OPENED?!");
   return 0;
 }
 
-static int gpio_release(struct inode∗ inode, struct file* filp) {
-  printk("GPIO RELEASED?!");
+static int gpio_release(struct inode* inode, struct file* filp) {
+  printk(KERN_INFO "GPIO RELEASED?!");
   return 0;
 }
 
