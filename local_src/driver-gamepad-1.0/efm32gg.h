@@ -1,5 +1,3 @@
-#include <stdint.h>
-
 // GPIO
 
 #define GPIO_PA_BASE 0x40006000
@@ -140,4 +138,3 @@
 #define SCR          ((volatile uint32_t*)0xe000ed10)
 #define SYSTICK_CTRL ((volatile uint32_t*)0xe000e010)
 #define SYSTICK_LOAD ((volatile uint32_t*)0xe000e014)
-

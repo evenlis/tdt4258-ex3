@@ -9,21 +9,19 @@
 #include <linux/ioport.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
-
+#include <linux/irqreturn.h>
 #include <linux/interrupt.h>
 #include <linux/sched.h>
 #include <linux/irq.h>
 #include <linux/signal.h>
 #include <linux/uaccess.h>
-
-
 #include <asm/io.h>
-
 #include "efm32gg.h"
 
 #define DEVICE_NAME "GPIO_GAMEPAD"
 
-irqreturn_t interrupt_handler(int irq, void* dev_id, struct pt_regs* regs);
+static irqreturn_t interrupt_handler(int irq, void* dev_id, struct pt_regs* regs);
+
 
 static ssize_t gpio_read(struct file* filp, char __user* buff, size_t count, loff_t* offp);
 static ssize_t gpio_write(struct file* filp, const char __user* buff, size_t count,  loff_t* offp);
@@ -63,75 +61,75 @@ static struct file_operations gpio_fops = {
 
 
 static int __init gpio_init(void) {
-  printk(KERN_INFO "Initializing %s driver...", DEVICE_NAME);
+printk(KERN_INFO "Initializing %s driver...", DEVICE_NAME);
 
-  // fetch device num, see pg. 45 in ldd (cp. 3)
-  if (alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE alloc_chrdev_regeion!");
-    return -1;
-  }
+// fetch device num, see pg. 45 in ldd (cp. 3)
+ if (alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE alloc_chrdev_regeion!");
+   return -1;
+}
 
-  // setup I/O ports:
-  if (!request_mem_region(GPIO_PC_MODEL, 4, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_PC_MODEL");
-    return -1;
-  }
-  if (!request_mem_region(GPIO_PC_DOUT, 4, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_PC_DOUT");
-    return -1;
-  }
+ // setup I/O ports:
+ if (!request_mem_region(GPIO_PC_MODEL, 4, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_PC_MODEL");
+   return -1;
+ }
+ if (!request_mem_region(GPIO_PC_DOUT, 4, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_PC_DOUT");
+   return -1;
+ }
 
-  if (!request_mem_region(GPIO_EXTIPSELL, 4, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_EXTIPSELL");
-    return -1;
-  }
+ if (!request_mem_region(GPIO_EXTIPSELL, 4, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_EXTIPSELL");
+   return -1;
+ }
 
-  if (!request_mem_region(GPIO_EXTIFALL, 4, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_EXTIFALL");
-    return -1;
-  }
+ if (!request_mem_region(GPIO_EXTIFALL, 4, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_EXTIFALL");
+   return -1;
+ }
 
-  if (!request_mem_region(GPIO_IEN, 4, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_IEN");
-    return -1;
-  }
-  if (!request_mem_region(GPIO_IFC, 4, DEVICE_NAME)) {
-    printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_IFC");
-    return -1;
-  }
+ if (!request_mem_region(GPIO_IEN, 4, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_IEN");
+   return -1;
+ }
+ if (!request_mem_region(GPIO_IFC, 4, DEVICE_NAME)) {
+   printk(KERN_INFO "FAILURE TO ALLOCATE: GPIO_IFC");
+   return -1;
+ }
 
-  // set up GPIO registers!
-  iowrite32(0x33333333, GPIO_PC_MODEL); /* set pins 0-7 to input */
-  iowrite32(0xff,       GPIO_PC_DOUT); /* internal pullup ... */
-  iowrite32(0x22222222, GPIO_EXTIPSELL);
+ // set up GPIO registers!
+ iowrite32(0x33333333, GPIO_PC_MODEL); /* set pins 0-7 to input */
+ iowrite32(0xff,       GPIO_PC_DOUT); /* internal pullup ... */
+ iowrite32(0x22222222, GPIO_EXTIPSELL);
 
-  // set up GPIO interrupts!
-  if (request_irq(17, interrupt_handler, 0, DEVICE_NAME, &gpio_cdev) || // EVEN
-      request_irq(18, interrupt_handler, 0, DEVICE_NAME, &gpio_cdev)) { // ODD
-    printk(KERN_INFO "FAILURE request_irq!");
-    return -1;
-  }
+ // set up GPIO interrupts!
+ if (request_irq(17, (irq_handler_t) interrupt_handler, 0, DEVICE_NAME, &gpio_cdev) || // EVEN
+     request_irq(18, (irq_handler_t) interrupt_handler, 0, DEVICE_NAME, &gpio_cdev)) { // ODD
+   printk(KERN_INFO "FAILURE request_irq!");
+   return -1;
+ }
 
-  iowrite32(0xff,       GPIO_EXTIFALL);
-  iowrite32(0xff,       GPIO_IEN);
-  iowrite32(0xff,       GPIO_IFC);
-
-
-  // initialize cdev, see pg. 56&57 cp 3 ldd
-  cdev_init(&gpio_cdev, &gpio_fops);
-  cdev.owner = THIS_MODULE;
-  cdev.ops = &gpio_fops;
-
-  if (cdev_add(&gpio_cdev, dev_num,1)) {
-    printk(KERN_INFO "FAILURE cdev_add");
-    return -1;
-  }
-  cl = class_create(THIS_MODULE, DEVICE_NAME);
-  device_create(cl, NULL, dev_num, NULL, DEVICE_NAME);
+ iowrite32(0xff,       GPIO_EXTIFALL);
+ iowrite32(0xff,       GPIO_IEN);
+ iowrite32(0xff,       GPIO_IFC);
 
 
-  printk(KERN_INFO "Hello World, here is your GPIO-module speaking\n");
-  return 0;
+ // initialize cdev, see pg. 56&57 cp 3 ldd
+ cdev_init(&gpio_cdev, &gpio_fops);
+ gpio_cdev.owner = THIS_MODULE;
+ gpio_cdev.ops = &gpio_fops;
+
+ if (cdev_add(&gpio_cdev, dev_num,1)) {
+   printk(KERN_INFO "FAILURE cdev_add");
+   return -1;
+ }
+ cl = class_create(THIS_MODULE, DEVICE_NAME);
+ device_create(cl, NULL, dev_num, NULL, DEVICE_NAME);
+
+
+ printk(KERN_INFO "Hello World, here is your GPIO-module speaking\n");
+ return 0;
 }
 
 /*
@@ -203,7 +201,7 @@ static int gpio_release(struct inode* inode, struct file* filp) {
 
 static int gpio_fasync(int fd, struct file* filp, int mode) {
   // pg 171 cp 09 in ldd
-  return fasync_helper(fd, filp, mode, async_queue);
+  return fasync_helper(fd, filp, mode, &async_queue);
 }
 
 module_init(gpio_init);
