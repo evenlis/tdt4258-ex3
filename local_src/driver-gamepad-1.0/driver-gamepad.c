@@ -26,6 +26,8 @@ static int gpio_fasync(int fd, struct file* filp, int mode);
 static dev_t dev_num;
 struct cdev gpio_cdev;
 struct fasync_struct* async_queue;
+struct class* cl;
+
 
 static struct file_operations gpio_fops = {
   .owner = THIS_MODULE,
@@ -113,7 +115,6 @@ static int __init gpio_init(void) {
     printk("FAILURE cdev_add");
     return -1;
   }
-  struct class* cl;
   cl = class_create(THIS_MODULE, DRIVER_NAME);
   device_create(cl, NULL, dev_num, NULL, DRIVER_NAME);z3
 
@@ -131,11 +132,25 @@ static int __init gpio_init(void) {
 
 static void __exit gpio_cleanup(void) {
 
-  // see pg. 45 cp 3 ldd
-  if (unregister_chrdev_region(&dev_num, 1)) {
-    printk("FAILURE unregister");
-    return;
-  }
+  // release I/O ports
+  release_mem_region(GPIO_PC_MODEL, 4);
+  release_mem_region(GPIO_EXTIPSELL, 4);
+  release_mem_region(GPIO_EXTIFALL, 4);
+  release_mem_region(GPIO_IEN, 4);
+  release_mem_region(GPIO_IFC, 4);
+
+  // remove irq handlers
+  free_irq(GPIO_EVEN_IRQ_LINE, &gpio_cdev);
+  free_irq(GPIO_ODD_IRQ_LINE,  &gpio_cdev);
+
+  // destroy device driver
+  device_destroy(cl, dev_num);
+  class_destroy(cl);
+  cdev_del(&gpio_cdev);
+
+  unregister_chrdev_region(&dev_num, 1);
+
+
   printk("Short life for a small module...\n");
 }
 
