@@ -208,4 +208,4 @@ module_init(gpio_init);
 module_exit(gpio_cleanup);
 
 MODULE_DESCRIPTION("HUGE module, demo only, not very useful.");
-MODULE_LICENSE("MIT");
+MODULE_LICENSE("GPL");
