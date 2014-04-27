@@ -143,6 +143,7 @@ static void __exit gpio_cleanup(void) {
 
   // release I/O ports
   release_mem_region(GPIO_PC_MODEL, 4);
+  release_mem_region(GPIO_PC_DOUT, 4);
   release_mem_region(GPIO_EXTIPSELL, 4);
   release_mem_region(GPIO_EXTIFALL, 4);
   release_mem_region(GPIO_IEN, 4);
