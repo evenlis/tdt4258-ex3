@@ -94,17 +94,26 @@ void calculateEnemyMove(Entity* enemy){
   Position down  = (Position){enemyX,   enemyY+1};
   Position left  = (Position){enemyX-1, enemyY};
   if(isFreeSpace(up) &&
-     hamiltonDistance(up, playerPos) < hamiltonDistance(enemyPos, playerPos))
+     hamiltonDistance(up, playerPos) < hamiltonDistance(enemyPos, playerPos)){
+    unchanged[enemyY*MAP_WIDTH + enemyX] = FALSE;
+    unchanged[(enemyY-1) * MAP_WIDTH + enemyX] = FALSE;
     moveEnemy(enemy, EVENT_MOVE_UP);
-  else if(isFreeSpace(right) &&
-	  hamiltonDistance(right, playerPos) < hamiltonDistance(enemyPos, playerPos))
+  }else if(isFreeSpace(right) &&
+	   hamiltonDistance(right, playerPos) < hamiltonDistance(enemyPos, playerPos)){
+    unchanged[enemyY*MAP_WIDTH + enemyX + 1] = FALSE;
+    unchanged[enemyY*MAP_WIDTH + enemyX] = FALSE;
     moveEnemy(enemy, EVENT_MOVE_RIGHT);
-  else if(isFreeSpace(down) &&
-	  hamiltonDistance(down, playerPos) < hamiltonDistance(enemyPos, playerPos))
+  }else if(isFreeSpace(down) &&
+	   hamiltonDistance(down, playerPos) < hamiltonDistance(enemyPos, playerPos)){
+    unchanged[(enemyY+1)*MAP_WIDTH + enemyX] = FALSE;
+    unchanged[enemyY*MAP_WIDTH + enemyX] = FALSE;
     moveEnemy(enemy, EVENT_MOVE_DOWN);
-  else if(isFreeSpace(left) &&
-	  hamiltonDistance(left, playerPos) < hamiltonDistance(enemyPos, playerPos))
+  }else if(isFreeSpace(left) &&
+	   hamiltonDistance(left, playerPos) < hamiltonDistance(enemyPos, playerPos)){
+    unchanged[enemyY*MAP_WIDTH + enemyX-1] = FALSE;
+    unchanged[enemyY*MAP_WIDTH + enemyX] = FALSE;
     moveEnemy(enemy, EVENT_MOVE_LEFT);
+  }
 }
 
 void moveEnemy(Entity* enemy, int event){
@@ -159,6 +168,8 @@ void movePlayer(int x, int y){
      newY < MAP_HEIGHT - 1 &&
      map[newY * MAP_WIDTH + newX] != TILE_WALL &&
      !getEnemyAtPosition(newX, newY)){
+    unchanged[player.position.y*MAP_WIDTH + player.position.x] = FALSE;
+    unchanged[newY*MAP_WIDTH + newX] = FALSE;
     player.position.x = newX;
     player.position.y = newY;
   }
@@ -172,8 +183,10 @@ void shootDirection(int x, int y){
 	xPos != MAP_WIDTH-1 &&
 	(yPos += y) != 0 &&
 	yPos != MAP_HEIGHT-1){
-    if (removeEnemyByPosition(xPos, yPos))
+    if (removeEnemyByPosition(xPos, yPos)){
+      unchanged[yPos*MAP_WIDTH + xPos] = FALSE;
       break;
+    }
   }
 }
 
