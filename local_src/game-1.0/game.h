@@ -14,8 +14,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "render.h"
-
+#include "pixelShit.h"
 // tile types
 #define TILE_WALL 0
 #define TILE_SPACE 1
@@ -94,5 +93,8 @@ int map[MAP_WIDTH*MAP_HEIGHT];
 struct EntityList *enemies;
 
 Entity player;
+int setupFrameBuffer();
+void drawMapState();
+
 
 #endif
