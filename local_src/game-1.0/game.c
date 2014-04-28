@@ -1,5 +1,7 @@
 #include "game.h"
 
+int playerIsAlive = TRUE;
+
 int removeEnemyByPosition(int x, int y) {
   struct EntityList* previous = NULL;
   struct EntityList* current  = enemies;
@@ -305,6 +307,10 @@ int setupGamepad(){
   return 0;
 }
 
+void destroyGamepad(){
+  fclose(driver);
+}
+
 void input_handler(int signal_no){
   int buttonStatus = fgetc(driver);
   if(isButtonPressed(buttonStatus, 0)){
@@ -373,9 +379,15 @@ int main(int argc, char *argv[])
 {
   srand(time(NULL));
   generateMap();
-
-  init();
   printMap();
+  init();
+  while(playerIsAlive){
+    drawMapState();
+    printMap();
+    pause();
+  }
+  destroyFrameBuffer();
+  destroyGamepad();
 }
 
 

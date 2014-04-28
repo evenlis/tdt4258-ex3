@@ -55,6 +55,7 @@ struct EntityList {
 };
 
 int setupGamepad();
+void destroyGamepad();
 int init();
 void input_handler(int);
 void gpio_handler();
@@ -98,6 +99,7 @@ Entity player;
 // rendering stuff
 uint16_t* frameBuffer;
 int setupFrameBuffer();
+int destroyFrameBuffer();
 void drawMapState();
 
 
