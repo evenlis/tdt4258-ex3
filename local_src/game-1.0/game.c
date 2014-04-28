@@ -8,10 +8,10 @@ int removeEnemyByPosition(int x, int y) {
   struct EntityList* next     = NULL;
   while(current) {
     Position pos = current->entity.position;
-    printf("\nChecking pos: x=%d, y=%d\n", x, y);
-    printf("Enemy    pos: x=%d, y=%d\n", pos.x, pos.y);
+    //    printf("\nChecking pos: x=%d, y=%d\n", x, y);
+    //    printf("Enemy    pos: x=%d, y=%d\n", pos.x, pos.y);
     if (pos.x == x && pos.y == y) {
-      printf("Found enemy at x: %d, y: %d\n", pos.x, pos.y);
+      //      printf("Found enemy at x: %d, y: %d\n", pos.x, pos.y);
       if (previous) { // not the first element
 	previous->next = next;
 	free(current);
@@ -219,8 +219,6 @@ void generateMap(){
   struct EntityList* prev = NULL;
   struct EntityList* current = NULL;
 
-
-  printf("%d", nofEnemies);
   for(int i=0; i<nofEnemies; ++i){
     int randPos = randomFreeSpacePosition();
     if (!prev) { // brute: første
@@ -373,11 +371,11 @@ void printMap(){
   printf("\n");
 
   struct EntityList* current = enemies;
-  while(current) {
+  /*  while(current) {
     Position pos = current->entity.position;
-    printf("\nE(x=%d, y=%d)\n\n", pos.x, pos.y);
+    //    printf("\nE(x=%d, y=%d)\n\n", pos.x, pos.y);
     current = current->next;
-  }
+    }*/
 }
 
 int main(int argc, char *argv[])
@@ -456,7 +454,7 @@ void drawMapState() {
 
   // i is each tile.
   for (int i = 0; i < MAP_WIDTH*MAP_HEIGHT; ++i) {
-    uint16_t** write;
+    uint16_t* write;
     if (playerAtIndex(i)) {
       write = PIXEL_PLAYER;
     }  else if (wallAtIndex(i)) {
@@ -477,7 +475,7 @@ void drawMapState() {
       for (int tile_row = 0; tile_row < RENDER_TILE_SIZE; ++tile_row) {
 	fbp[map_row  * MAP_WIDTH * RENDER_TILE_SIZE*RENDER_TILE_SIZE +
 	    tile_row * MAP_WIDTH * RENDER_TILE_SIZE +
-	    tile_col * map_col   * RENDER_TILE_SIZE] = (uint16_t) *(write[tile_col + tile_row*RENDER_TILE_SIZE]);
+	    tile_col + map_col   * RENDER_TILE_SIZE] = (write[tile_col + tile_row*RENDER_TILE_SIZE]);
       }
     }
 
