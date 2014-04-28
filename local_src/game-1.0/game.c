@@ -122,6 +122,7 @@ void moveEnemy(Entity* enemy, int event){
 void attackPlayer(Entity* enemy){
   //  player.health -= enemy->enemyType->damage;
   // kill player!
+  playerIsAlive = FALSE;
 }
 
 /*
@@ -384,7 +385,7 @@ int main(int argc, char *argv[])
   generateMap();
   printMap();
   init();
-  while(1){
+  while(TRUE){
     if (enemies == NULL) { // win condition
       drawMapState(WIN_MAP);
       break;
