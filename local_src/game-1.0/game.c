@@ -394,9 +394,13 @@ int main(int argc, char *argv[])
   init();
   while(TRUE){
     if (enemies == NULL) { // win condition
+      for (int i = 0; i < MAP_WIDTH*MAP_HEIGHT; ++i)
+	unchanged[i] = FALSE;
       drawMapState(WIN_MAP);
       break;
     } if (!playerIsAlive) {
+      for (int i = 0; i < MAP_WIDTH*MAP_HEIGHT; ++i)
+	unchanged[i] = FALSE;
       drawMapState(GAME_OVER_MAP);
       break;
     }
