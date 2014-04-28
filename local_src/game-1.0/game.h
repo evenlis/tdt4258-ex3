@@ -103,4 +103,7 @@ int destroyFrameBuffer();
 void drawMapState();
 
 
+int unchanged[MAP_WIDTH*MAP_HEIGHT];
+
+
 #endif
