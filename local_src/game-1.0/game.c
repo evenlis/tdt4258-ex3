@@ -470,11 +470,14 @@ void drawMapState() {
       //      exit(1); or something
     }
 
-    // j is each column in the "pixel art"
-    for (int j = 0; j < RENDER_TILE_SIZE; ++j) {
-      // k is each row.
-      for (int k = 0; k < RENDER_TILE_SIZE; ++k) {
-	fbp[i+j + k*MAP_WIDTH*RENDER_TILE_SIZE] = (uint16_t) *(write[j + k*RENDER_TILE_SIZE]);
+    int map_row = i / MAP_WIDTH;
+    int map_col = i % MAP_WIDTH;
+
+    for (int tile_col = 0; tile_col < RENDER_TILE_SIZE; ++tile_col) {
+      for (int tile_row = 0; tile_row < RENDER_TILE_SIZE; ++tile_row) {
+	fbp[map_row  * MAP_WIDTH * RENDER_TILE_SIZE*RENDER_TILE_SIZE +
+	    tile_row * MAP_WIDTH * RENDER_TILE_SIZE +
+	    tile_col * map_col   * RENDER_TILE_SIZE] = (uint16_t) *(write[tile_col + tile_row*RENDER_TILE_SIZE]);
       }
     }
 
