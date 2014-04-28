@@ -6,21 +6,26 @@ int removeEnemyByPosition(int x, int y) {
   struct EntityList* next     = NULL;
   while(current) {
     Position pos = current->entity.position;
+    printf("\nChecking pos: x=%d, y=%d\n", x, y);
+    printf("Enemy    pos: x=%d, y=%d\n", pos.x, pos.y);
     if (pos.x == x && pos.y == y) {
+      printf("Found enemy at x: %d, y: %d\n", pos.x, pos.y);
       if (previous) { // not the first element
 	previous->next = next;
 	free(current);
 	return TRUE;
       }
       else { // the first element, TODO CORRECT???
-	free(enemies);
-	enemies = next;
+	enemies = current->next;
+	free(current);
 	return TRUE;
       }
     }
     previous = current;
-    current  = next;
-    next = current->next;
+    current  = current->next;
+    if(current)
+      next = current->next;
+
   }
 
   return FALSE;

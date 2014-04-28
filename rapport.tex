@@ -22,7 +22,7 @@
   breaklines=true,
   breakatwhitespace=true,
   tabsize=4,
-  xleftmargin=.5in
+  xleftmargin=.1in
 }
 
 \hypersetup{
@@ -40,7 +40,7 @@ This report describes the group's efforts to solve excercise 3 in the course TDT
 
 \section*{Description and Methodology}
 \paragraph{The game}
-The game is a 1-player, turn-based shooter. The map is generated with 4 walls, some obstacles (wall pieces randomly positioned on the board), a random (but within a certain interval) number of enemies, and of course the player. For each turn, the player must choose to either move up, down, left or right, or to shoot in one of said directions. If an enemy makes it to the tile next to the player, the game is over.
+The game is a 1-player, turn-based shooter. The map is generated with 4 surrounding walls, some obstacles (wall pieces randomly positioned on the board), a random (but within a certain interval) number of enemies, and of course the player. For each turn, the player must choose to either move up, down, left or right, or to shoot in one of said directions. If an enemy makes it to the tile next to the player, it attacks the player and the game is over.
 
 \paragraph{Technology}
 The game will be written in C, and linked as a driver with the uClinux kernel distribution running on the board.
@@ -55,6 +55,40 @@ The map generation algorithm calculates the number of obstacles and enemies to b
   int enemyRatio = (rand()%9) + 4;
   int nofEnemies = (int)(openSpaces * enemyRatio/100.0);
 \end{lstlisting}
+
+Randomly positioning enemies and obstacles on the board is done with the C standard library's rand()-function, using time as the seed:
+\begin{lstlisting}
+  srand(time(NULL));
+  ...
+  int randomPosition = rand()%(MAP_WIDTH*MAP_HEIGHT-MAP_WIDTH*2);
+\end{lstlisting}
+As can be seen from the code snippet above, we subtract 2 times the map width from the randomly generated number to ensure that an open space will be found. The first open space after the randomly generated position is returned:
+\begin{lstlisting}
+  while (map[randomPosition] == TILE_WALL ||
+	 getEnemyAtPosition(randomPosition % MAP_WIDTH, randomPosition / MAP_WIDTH)) {
+    if (++randomPosition >= MAP_WIDTH*MAP_HEIGHT) {
+      exit(1);
+    }
+  }
+  return randomPosition;
+\end{lstlisting}
+
+The enemies are organized in a linked list for easily removing a "dead" enemy:
+\begin{lstlisting}
+  void addEnemy(Entity enemy) {
+  struct EntityList* current = enemies;
+  while(current) {
+    struct EntityList* next = current->next;
+    if (!next){
+      next = (struct EntityList*) malloc(sizeof(struct EntityList));
+      next->entity = enemy;
+      return;
+    }
+    current = next;
+  }
+}
+\end{lstlisting}
+We contemplated using an array to hold the enemies, but decided that would yield rendering issues if we were to expand on the game, and for instance add enemies during the game. The algorithm deciding where the enemies should move between player turns employs the Hamilton distance
 
 \subsection*{Energy Efficiency Measures}
 \paragraph{Deep Sleep}
