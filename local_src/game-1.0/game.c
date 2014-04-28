@@ -373,6 +373,8 @@ int main(int argc, char *argv[])
 {
   srand(time(NULL));
   generateMap();
+
+  init();
   printMap();
 }
 
@@ -380,33 +382,70 @@ int main(int argc, char *argv[])
 
 
 /* RENDERING CODE */
+
+// this used to be in a separate file, but we mangled the makefile and were short on time.
 #include <string.h>
+#include <linux/fb.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <fcntl.h>
+
+
+
+// file
+int fbfd;
+// the memory mapped array to hold pixels
+uint16_t* fbp;
+
+int screensize = MAP_WIDTH*RENDER_TILE_SIZE * MAP_HEIGHT*RENDER_TILE_SIZE * 2; // 2 bytes per pixel
 
 
 int setupFrameBuffer() {
+  // http://stackoverflow.com/questions/4996777/paint-pixels-to-screen-via-linux-framebuffer
+
+  if(fbfd = open("/dev/fb0", O_RDWR)) {
+    printf("Couldn't open framebuffer'");
+    return -1;
+  }
+  fbp = (uint16_t*) mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
+
+  if (!fbp){
+    printf("MMAP FAILED!");
+    return -1;
+  }
 
   return 0;
 }
 
+int destroyFrameBuffer() {
+  munmap(fbp, screensize);
+  close(fbfd);
+  return 0;
+}
+
+
 void drawMapState() {
 
-  // Alternative 1: do it simply:
-  /* 1. loop through background: draw walls/spaces
-     2. loop through enemies:draw enemeies(over background)
-     3. draw player
-     4. tell framebuffer driver that the screen has been updated.
-  */
+  // currently draws te whole thing,
+  struct fb_copyarea rect;
+  rect.dx = 0;
+  rect.dy = 0;
+  rect.width = RENDER_TILE_SIZE*MAP_WIDTH;
+  rect.height = RENDER_TILE_SIZE*MAP_HEIGHT;
 
-  // Alternative 2: no overwrites, but some searching required.
+
   // i is each tile.
   for (int i = 0; i < MAP_WIDTH*MAP_HEIGHT; ++i) {
-    uint16_t **write;
+    uint16_t** write;
     if (playerAtIndex(i)) {
       write = PIXEL_PLAYER;
+    }  else if (wallAtIndex(i)) {
+      write = PIXEL_WALL;
     } else if (enemyAtIndex(i)) {
       write = PIXEL_ENEMY;
-    } else if (wallAtIndex(i)) {
-      write = PIXEL_WALL;
     } else if (spaceAtIndex(i)) {
       write = PIXEL_SPACE;
     } else {
@@ -416,6 +455,9 @@ void drawMapState() {
 
     // j is each row in the "pixel art"
     for (int j = 0; j < RENDER_TILE_SIZE; ++j) {
+      memcpy(fbp + i*RENDER_TILE_SIZE + j*MAP_WIDTH*RENDER_TILE_SIZE,
+	     write + j*RENDER_TILE_SIZE,
+	     RENDER_TILE_SIZE);
       // todo change output array to something else.
       //memcpy(output + i*RENDER_TILE_SIZE + j*MAP_WIDTH*RENDER_TILE_SIZE,
       //	     write + j*RENDER_TILE_SIZE,
@@ -425,7 +467,7 @@ void drawMapState() {
   }
 
 
-  // TODO: tell framebuffer to update!
-
+  // Tell framebuffer to update!
+  ioctl(fbfd, 0x4680, &rect);
 
 }

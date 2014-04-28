@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <linux/fb.h>
 
 #include "pixelShit.h"
 // tile types
@@ -30,8 +31,8 @@
 #define EVENT_SHOOT_LEFT 7
 
 // map meta
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 10
+#define MAP_WIDTH 20
+#define MAP_HEIGHT 15
 
 // misc
 #define TRUE 1
@@ -93,6 +94,9 @@ int map[MAP_WIDTH*MAP_HEIGHT];
 struct EntityList *enemies;
 
 Entity player;
+
+// rendering stuff
+uint16_t* frameBuffer;
 int setupFrameBuffer();
 void drawMapState();
 
