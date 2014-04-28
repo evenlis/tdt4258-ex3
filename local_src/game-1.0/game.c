@@ -411,7 +411,7 @@ int screensize = MAP_WIDTH*RENDER_TILE_SIZE * MAP_HEIGHT*RENDER_TILE_SIZE * 2; /
 int setupFrameBuffer() {
   // http://stackoverflow.com/questions/4996777/paint-pixels-to-screen-via-linux-framebuffer
 
-  if(fbfd = open("/dev/fb0", O_RDWR)) {
+  if((fbfd = open("/dev/fb0", O_RDWR)) == -1) {
     printf("Couldn't open framebuffer'");
     return -1;
   }
@@ -467,7 +467,8 @@ void drawMapState() {
     }
 
 
-  // Tell framebuffer to update!
-  ioctl(fbfd, 0x4680, &rect);
+    // Tell framebuffer to update!
+    ioctl(fbfd, 0x4680, &rect);
 
+  }
 }
