@@ -446,14 +446,14 @@ void drawMapState() {
 
   // currently draws te whole thing,
   struct fb_copyarea rect;
-  rect.dx = 0;
-  rect.dy = 0;
-  rect.width = RENDER_TILE_SIZE*MAP_WIDTH;
-  rect.height = RENDER_TILE_SIZE*MAP_HEIGHT;
-
 
   // i is each tile.
   for (int i = 0; i < MAP_WIDTH*MAP_HEIGHT; ++i) {
+    if (unchanged[i])
+      continue;
+
+    unchanged[i] == TRUE;
+
     uint16_t* write;
     if (playerAtIndex(i)) {
       write = PIXEL_PLAYER;
@@ -478,8 +478,11 @@ void drawMapState() {
 	    tile_col + map_col   * RENDER_TILE_SIZE] = (write[tile_col + tile_row*RENDER_TILE_SIZE]);
       }
     }
-
-
+    // (0,0) is top left of screen
+    rect.dx = map_row;
+    rect.dy = map_col;
+    rect.width = RENDER_TILE_SIZE;
+    rect.height = RENDER_TILE_SIZE;
     // Tell framebuffer to update!
     ioctl(fbfd, 0x4680, &rect);
 
