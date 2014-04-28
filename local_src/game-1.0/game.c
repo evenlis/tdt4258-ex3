@@ -384,8 +384,15 @@ int main(int argc, char *argv[])
   generateMap();
   printMap();
   init();
-  while(playerIsAlive){
-    drawMapState();
+  while(1){
+    if (enemies == NULL) { // win condition
+      drawMapState(WIN_MAP);
+      break;
+    } if (!playerIsAlive) {
+      drawMapState(GAME_OVER_MAP);
+      break;
+    }
+    drawMapState(map);
     printMap();
     pause();
   }
@@ -442,7 +449,7 @@ int destroyFrameBuffer() {
 }
 
 
-void drawMapState() {
+void drawMapState(int local_map[]) {
 
   // currently draws te whole thing,
   struct fb_copyarea rect;
@@ -452,16 +459,16 @@ void drawMapState() {
     if (unchanged[i])
       continue;
 
-    unchanged[i] == TRUE;
+    unchanged[i] = TRUE;
 
     uint16_t* write;
     if (playerAtIndex(i)) {
       write = PIXEL_PLAYER;
-    }  else if (wallAtIndex(i)) {
+    }  else if (local_map[i] == TILE_WALL) {
       write = PIXEL_WALL;
     } else if (enemyAtIndex(i)) {
       write = PIXEL_ENEMY;
-    } else if (spaceAtIndex(i)) {
+    } else if (local_map[i] == TILE_SPACE) {
       write = PIXEL_SPACE;
     } else {
       // critical failure
@@ -478,13 +485,12 @@ void drawMapState() {
 	    tile_col + map_col   * RENDER_TILE_SIZE] = (write[tile_col + tile_row*RENDER_TILE_SIZE]);
       }
     }
-    // (0,0) is top left of screen
-    rect.dx = map_row;
-    rect.dy = map_col;
-    rect.width = RENDER_TILE_SIZE;
-    rect.height = RENDER_TILE_SIZE;
-    // Tell framebuffer to update!
-    ioctl(fbfd, 0x4680, &rect);
-
   }
+  // (0,0) is top left of screen
+  rect.dx = 0; //map_row;
+  rect.dy = 0; //map_col;
+  rect.width = MAP_WIDTH*RENDER_TILE_SIZE;
+  rect.height = MAP_HEIGHT*RENDER_TILE_SIZE;
+  // Tell framebuffer to update!
+  ioctl(fbfd, 0x4680, &rect);
 }
