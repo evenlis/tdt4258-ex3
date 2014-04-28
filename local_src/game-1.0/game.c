@@ -453,18 +453,13 @@ void drawMapState() {
       //      exit(1); or something
     }
 
-    // j is each row in the "pixel art"
+    // j is each column in the "pixel art"
     for (int j = 0; j < RENDER_TILE_SIZE; ++j) {
-      memcpy(fbp + i*RENDER_TILE_SIZE + j*MAP_WIDTH*RENDER_TILE_SIZE,
-	     write + j*RENDER_TILE_SIZE,
-	     RENDER_TILE_SIZE);
-      // todo change output array to something else.
-      //memcpy(output + i*RENDER_TILE_SIZE + j*MAP_WIDTH*RENDER_TILE_SIZE,
-      //	     write + j*RENDER_TILE_SIZE,
-      //	     RENDER_TILE_SIZE);
+      // k is each row.
+      for (int k = 0; k < RENDER_TILE_SIZE; ++k) {
+	fbp[i+j + k*MAP_WIDTH*RENDER_TILE_SIZE] = (uint16_t) *(write[j + k*RENDER_TILE_SIZE]);
+      }
     }
-
-  }
 
 
   // Tell framebuffer to update!
