@@ -384,12 +384,6 @@ void printMap(){
   }
   printf("\n");
 
-  struct EntityList* current = enemies;
-  /*  while(current) {
-    Position pos = current->entity.position;
-    //    printf("\nE(x=%d, y=%d)\n\n", pos.x, pos.y);
-    current = current->next;
-    }*/
 }
 
 int main(int argc, char *argv[])
